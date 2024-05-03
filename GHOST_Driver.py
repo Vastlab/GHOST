@@ -145,6 +145,8 @@ for dataset in datasets:
         print(f'{dataset} is being treated as OOD')
         test_gt = (test_gt * 0) - 1
     
+    
+    
     test_logits = test_data[:,1:]
     test_FVs = test_FV_data[:,1:]
     test_preds = torch.max(test_logits, dim=1).indices

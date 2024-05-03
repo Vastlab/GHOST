@@ -9,32 +9,10 @@ import matplotlib.pyplot as plt
 import math
 import scipy
 import os
-from vast.DistributionModels import weibull
+#from vast.DistributionModels import weibull
 
 import multiprocessing as mp
 n_cpu = int(os.cpu_count()*0.8)
-
-
-def fit_high(scores, tailsize, translateAmount=0.5):
-
-    if tailsize <= 1:
-        tailsize = min(tailsize * scores.shape[1], scores.shape[1])
-    tailsize = int(min(tailsize, scores.shape[1]))
-    mr = weibull.weibull(translateAmount=translateAmount)
-    mr.FitHigh(scores.double(), tailsize, isSorted=False)
-    mr.tocpu()
-    return mr
-
-def fit_low(scores, tailsize, gpu=0):
-    mr = weibull.weibull()
-    mr.FitLow(
-        scores.double(),
-        min(tailsize, scores.shape[1]),
-        isSorted=False,
-        gpu=gpu,
-    )
-    return mr
-
 
 
 
@@ -122,7 +100,6 @@ class GHOST(GHOST_Base):
         for c in tqdm(self.Gaus_dict.keys()):
             class_mask = pred == c
             mean_vector, std_vector = self.Gaus_dict[c]
-            std_vector[std_vector == 0] = torch.inf #This basically nullifies feature dimensions with constant values (eg. 0 standard deviation)
             FV_Z_Score = (FVs[class_mask]-mean_vector)/std_vector
             FV_Z_Score = torch.abs(FV_Z_Score) #Distance is distance
             diff_score = torch.sum(FV_Z_Score, dim=1)
@@ -136,7 +113,7 @@ class GHOST(GHOST_Base):
 
     def Gaus_gen(self, logits, FV): #ASSUME DATA IS CORRECTLY PREDICTED
         preds = torch.max(logits, dim=1).indices
-        classes = torch.unique(preds).long()      
+        classes = torch.unique(preds).long().tolist()
 
         class_models = {}
         print("Generating gaussian models")
@@ -145,11 +122,34 @@ class GHOST(GHOST_Base):
 
             mean = torch.mean(select_class_FVs, dim=0)
             std = torch.std(select_class_FVs, dim=0)
+            
+            std[std == 0] = torch.inf #This basically nullifies feature dimensions with constant values (eg. 0 standard deviation)
 
             class_models[c] = (mean, std)
 
         return class_models
     
+    def normalize_features(self, logits, FV): #Normalize features based on max logit predicted class.
+        preds = torch.max(logits, dim=1).indices
+        classes = torch.unique(preds).long().tolist()
+        
+        normalized_features = torch.zeros(FV.shape)
+        for c in classes:
+            mean_vector, std_vector = self.Gaus_dict[c]
+            select_class_FVs = FV[preds == c]
+            z_scores = torch.abs((select_class_FVs - mean_vector)/std_vector)
+            normalized_features[preds==c] = FV[preds==c]/z_scores
+            
+        return normalized_features
+    
+    def normalize_features_wrt_class(self, class_num, FV): #Normalize features assuming they belong to a specific class
+        pdb.set_trace()
+        normalized_features = torch.zeros(FV.shape)
+        mean_vector, std_vector = self.Gaus_dict[class_num]
+        z_scores = torch.abs((FV - mean_vector)/std_vector)
+        normalized_features = FV/z_scores
+
+        return normalized_features
 
 choices = {
         "GHOST":GHOST,
