@@ -143,7 +143,6 @@ class GHOST(GHOST_Base):
         return normalized_features
     
     def normalize_features_wrt_class(self, class_num, FV): #Normalize features assuming they belong to a specific class
-        pdb.set_trace()
         normalized_features = torch.zeros(FV.shape)
         mean_vector, std_vector = self.Gaus_dict[class_num]
         z_scores = torch.abs((FV - mean_vector)/std_vector)
