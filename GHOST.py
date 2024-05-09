@@ -138,6 +138,7 @@ class GHOST(GHOST_Base):
             mean_vector, std_vector = self.Gaus_dict[c]
             select_class_FVs = FV[preds == c]
             z_scores = torch.abs((select_class_FVs - mean_vector)/std_vector)
+            z_scores[z_scores == 0] = 1#Fix for NaN, pass constant features through unchanged
             normalized_features[preds==c] = FV[preds==c]/z_scores
             
         return normalized_features
@@ -146,6 +147,7 @@ class GHOST(GHOST_Base):
         normalized_features = torch.zeros(FV.shape)
         mean_vector, std_vector = self.Gaus_dict[class_num]
         z_scores = torch.abs((FV - mean_vector)/std_vector)
+        z_scores[z_scores == 0] = 1#Fix for NaN, pass constant features through unchanged
         normalized_features = FV/z_scores
 
         return normalized_features
