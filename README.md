@@ -1,4 +1,4 @@
-# Gaussian Heterogeneus Open-set Theory (GHOST)
+# Gaussian Heterogeneus Open-set Technique (GHOST)
 This repository contains an implementation of GHOST.
 GHOST builds gaussian models of each feature dimension from samples of each class and leverages their Z-scores at inference time to normalize classification logits.
 
