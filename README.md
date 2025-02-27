@@ -1,4 +1,4 @@
-# Gaussian Heterogeneus Open-set Technique (GHOST)
+# Gaussian Hypothesis Open-set Technique (GHOST)
 This repository contains an implementation of GHOST, an Open-Set post-processing algorithm for deep neural networks.
 
 GHOST is described in-depth in our AAAI 2025 accepted paper! See the preprint here: https://arxiv.org/abs/2502.03359
